@@ -1,15 +1,25 @@
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true // This runs in the browser for this demo/local app
-})
+// Don't initialize immediately to avoid crashing the whole app if the key is missing on Netlify
+let openaiInstance = null;
+
+function getOpenAIClient() {
+  if (!openaiInstance) {
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY || ''; // Fallback to empty string to prevent fatal crash
+    openaiInstance = new OpenAI({
+      apiKey: apiKey,
+      dangerouslyAllowBrowser: true
+    });
+  }
+  return openaiInstance;
+}
 
 export async function transcribeAudio(audioBlob) {
   try {
     const file = new File([audioBlob], 'recipe_audio.webm', { type: 'audio/webm' })
+    const client = getOpenAIClient()
     
-    const transcription = await openai.audio.transcriptions.create({
+    const transcription = await client.audio.transcriptions.create({
       file: file,
       model: 'whisper-1',
     })
@@ -44,7 +54,8 @@ Note: If a specific time (prep/cook) or servings isn't mentioned, leave the fiel
 Return ONLY valid JSON.
 `
 
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient()
+    const response = await client.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: 'You are a helpful culinary AI that structures spoken recipes into JSON.' },
