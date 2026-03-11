@@ -14,6 +14,7 @@ import Button from '../ui/Button'
 import Badge from '../ui/Badge'
 import { useAI } from '../../hooks/useAI'
 import toast from 'react-hot-toast'
+import VoiceRecipeTranscriber from './VoiceRecipeTranscriber'
 
 function SortableStep({ id, index, value, onChange, onRemove }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id })
@@ -181,6 +182,24 @@ export default function RecipeForm({ initialData, onSubmit, isEditing = false })
     }
   }
 
+  function handleRecipeParsed(result) {
+    if (result) {
+      setForm((prev) => ({
+        ...prev,
+        title: result.title || prev.title,
+        description: result.description || prev.description,
+        category: result.category || prev.category,
+        ingredients: result.ingredients?.length ? result.ingredients : prev.ingredients,
+        steps: result.steps?.length ? result.steps : prev.steps,
+        prepTime: result.prepTime || prev.prepTime,
+        cookTime: result.cookTime || prev.cookTime,
+        servings: result.servings || prev.servings,
+        difficulty: result.difficulty || prev.difficulty,
+      }))
+      setStep(0)
+    }
+  }
+
   function handleSubmit() {
     const filteredIngredients = form.ingredients.filter((i) => i.trim())
     const filteredSteps = form.steps.filter((s) => s.trim())
@@ -211,24 +230,28 @@ export default function RecipeForm({ initialData, onSubmit, isEditing = false })
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Import from URL */}
+      {/* Import from URL & Voice Transcriber */}
       {!isEditing && (
-        <div className="mb-6 p-4 bg-stone-50 rounded-2xl border border-stone-200">
-          <div className="flex items-center gap-2 mb-2">
-            <LinkIcon className="w-4 h-4 text-stone-500" />
-            <span className="text-sm font-medium text-stone-700">Import from URL</span>
-          </div>
-          <div className="flex gap-2">
-            <input
-              type="url"
-              value={importUrl}
-              onChange={(e) => setImportUrl(e.target.value)}
-              placeholder="Paste recipe URL..."
-              className="flex-1 rounded-xl border border-stone-300 px-3 py-2 text-sm focus:ring-2 focus:ring-stone-500 focus:border-transparent"
-            />
-            <Button onClick={handleImportURL} loading={importing} size="sm">
-              Import
-            </Button>
+        <div className="mb-6 space-y-4">
+          <VoiceRecipeTranscriber onRecipeParsed={handleRecipeParsed} />
+          
+          <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200">
+            <div className="flex items-center gap-2 mb-2">
+              <LinkIcon className="w-4 h-4 text-stone-500" />
+              <span className="text-sm font-medium text-stone-700">Import from URL</span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={importUrl}
+                onChange={(e) => setImportUrl(e.target.value)}
+                placeholder="Paste recipe URL..."
+                className="flex-1 rounded-xl border border-stone-300 px-3 py-2 text-sm focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+              />
+              <Button onClick={handleImportURL} loading={importing} size="sm">
+                Import
+              </Button>
+            </div>
           </div>
         </div>
       )}
