@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY)
 
-export const geminiModel = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite' })
+export const geminiModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
 export async function generateAIResponse(prompt, systemInstruction = '') {
   const chat = geminiModel.startChat({
@@ -32,7 +32,7 @@ export async function streamAIResponse(prompt, systemInstruction = '', onChunk) 
 
 export async function generateJSON(prompt, systemInstruction = '') {
   const model = genAI.getGenerativeModel({
-    model: 'gemini-3.1-flash-lite',
+    model: 'gemini-2.5-flash',
     generationConfig: {
       temperature: 0.3,
       responseMimeType: 'application/json',
